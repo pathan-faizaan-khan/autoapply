@@ -9,7 +9,16 @@ export async function POST(
 ) {
   try {
     const { action } = await params;
-    const body = await request.json();
+    // Safely parse body — some routes (e.g. guest) send no body at all
+    let body: Record<string, unknown> = {};
+    const contentType = request.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      try {
+        body = await request.json();
+      } catch {
+        body = {};
+      }
+    }
 
     // Map the Next.js API actions to Express backend routes
     let backendEndpoint = '';
