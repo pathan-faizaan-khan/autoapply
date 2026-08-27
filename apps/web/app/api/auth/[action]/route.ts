@@ -37,7 +37,13 @@ export async function POST(
       body: JSON.stringify(body),
     });
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      console.error('Failed to parse backend response as JSON', await response.text());
+      return NextResponse.json({ error: 'Invalid response from backend server' }, { status: 502 });
+    }
 
     if (!response.ok) {
       return NextResponse.json({ error: data.error || 'Request failed' }, { status: response.status });
@@ -62,6 +68,6 @@ export async function POST(
     return nextResponse;
   } catch (error: any) {
     console.error('Error in Next.js API Route:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Internal Server Error', details: error.toString() }, { status: 500 });
   }
 }
